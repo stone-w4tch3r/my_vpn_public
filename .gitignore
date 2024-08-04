@@ -212,4 +212,7 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,macos,windows,linux,terraform,rider
 # custom
 .idea/copilot/*
+.idea/modules.xml
+.idea/deployment.xml
+.idea/webServers.xml
 */.env
