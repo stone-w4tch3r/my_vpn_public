@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  facade:
+    image: crccheck/hello-world:latest
+    container_name: facade-container
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy-container
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - DOMAIN=${DOMAIN}
+    depends_on:
+      - facade
+
+volumes:
+  caddy_data: # This volume contains certs. Copy it when redeploying to prevent reissuing and rate limiting.
+  caddy_config: # Contains dynamic configuration, if it was created in run-time. TODO Maybe not needed?

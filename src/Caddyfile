@@ -1,0 +1,3 @@
+{$DOMAIN} {
+    reverse_proxy facade-container:{$FACADE_INNER_PORT}
+}
