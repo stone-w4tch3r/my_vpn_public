@@ -6,13 +6,31 @@ services:
     container_name: facade-container
     restart: unless-stopped
 
+  3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x-ui-container
+    # hostname: yourhostname # TODO is this needed?
+    volumes:
+      - $PWD/db/:/etc/x-ui/
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+    tty: true
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "2053:2053" # panel
+      - "2091:2091" # subscriptions
+    depends_on:
+      - caddy
+
   caddy:
     image: caddy:latest
     container_name: caddy-container
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
+    expose:
+      - "443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -25,3 +43,4 @@ services:
 volumes:
   caddy_data: # This volume contains certs. Copy it when redeploying to prevent reissuing and rate limiting.
   caddy_config: # Contains dynamic configuration, if it was created in run-time. TODO Maybe not needed?
+
