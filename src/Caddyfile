@@ -1,3 +1,17 @@
+# main
 {$DOMAIN} {
-    reverse_proxy facade-container:{$FACADE_INNER_PORT}
+
+    reverse_proxy / facade-container:{$FACADE_INNER_PORT}
+    reverse_proxy /3x-ui-{$XPANEL_PATH_POSTFIX}/* 3x-ui-container:2053
+    reverse_proxy /3x-ui-sub-{$XPANEL_PATH_POSTFIX}/* 3x-ui-container:2096
+    reverse_proxy /3x-ui-json-{$XPANEL_PATH_POSTFIX}/* 3x-ui-container:2096
+}
+
+# legacy subscription path
+{$LEGACY_DOMAIN}:2021 {
+
+    handle /sub_sdsd/* {
+        uri replace /sub_sdsd/ /sub/
+        reverse_proxy 3x-ui-container:2096
+    }
 }
