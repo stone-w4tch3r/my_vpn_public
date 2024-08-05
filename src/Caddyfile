@@ -16,7 +16,7 @@
 {$LEGACY_DOMAIN}:2021 {
 
     handle /sub_sdsd/* {
-        uri replace /sub_sdsd/ /sub/
+        uri replace /sub_sdsd/ /3x-ui-sub-{$XPANEL_PATH_POSTFIX}/
         reverse_proxy 3x-ui-container:2096
     }
 }
