@@ -7,6 +7,11 @@
     reverse_proxy /3x-ui-json-{$XPANEL_PATH_POSTFIX}/* 3x-ui-container:2096
 }
 
+# fallback for panel
+{$DOMAIN}:{$XPANEL_FALLBACK_PORT} {
+    reverse_proxy /3x-ui-{$XPANEL_PATH_POSTFIX}/* 3x-ui-container:2053
+}
+
 # legacy subscription path
 {$LEGACY_DOMAIN}:2021 {
 

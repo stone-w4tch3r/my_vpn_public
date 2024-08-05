@@ -34,6 +34,7 @@ services:
     ports:
       - "80:80"
       - "2021:2021" # legacy subscriptions
+      - ${XPANEL_FALLBACK_PORT}:${XPANEL_FALLBACK_PORT}
     expose:
       - "443"
       - "443/udp"
@@ -46,6 +47,7 @@ services:
       - FACADE_INNER_PORT=${FACADE_INNER_PORT}
       - LEGACY_DOMAIN=${LEGACY_DOMAIN}
       - XPANEL_PATH_POSTFIX=${XPANEL_PATH_POSTFIX}
+      - XPANEL_FALLBACK_PORT=${XPANEL_FALLBACK_PORT}
     depends_on:
       - facade
 
