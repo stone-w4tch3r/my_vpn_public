@@ -1,0 +1,132 @@
+@startuml
+
+package "step-ca-shared" {
+  class CLIWrapper {
+    -execute_command(command: str): Dict
+    +run_step_ca_command(args: List[str]): Dict
+    -sanitize_input(input: str): str
+  }
+}
+
+package "step-ca-web" {
+  class Main {
+    +init_app()
+    +index()
+    +certificates()
+    +server_config()
+    +logs()
+    +command_history()
+  }
+
+  class Config {
+    +load_config()
+    +get_setting(key: str): Any
+    +update_setting(key: str, value: Any)
+  }
+
+  class Auth {
+    +login_required(func)
+    +verify_credentials(username: str, password: str): bool
+  }
+
+  class CertManager {
+    +list_certificates(): List[Dict]
+    +generate_certificate(params: Dict): Dict
+    +revoke_certificate(cert_id: str): Dict
+    +renew_certificate(cert_id: str): Dict
+  }
+
+  class ServerConfig {
+    +get_config(): Dict
+    +update_config(new_config: Dict): Dict
+  }
+
+  class LogHandler {
+    +log_command(command: str, output: str, status: str)
+    +get_logs(filter_params: Dict): List[Dict]
+    +get_command_history(): List[Dict]
+  }
+}
+
+package "step-ca-setup" {
+  class AutoSetup {
+    +run_setup_wizard(): Dict
+    +generate_default_config(): Dict
+    +install_step_ca(): Dict
+  }
+}
+
+interface "Flask" as FlaskInterface
+
+Main -up-> FlaskInterface : uses
+Main --> Config : uses
+Main --> Auth : uses
+Main --> CertManager : uses
+Main --> ServerConfig : uses
+Main --> LogHandler : uses
+
+CertManager --> CLIWrapper : uses
+ServerConfig --> CLIWrapper : uses
+CLIWrapper --> LogHandler : uses
+AutoSetup --> CLIWrapper : uses
+
+note right of CLIWrapper
+  Shared component
+  Executes step-ca CLI commands
+  Returns log data for each command
+end note
+
+note right of LogHandler
+  Stores logs in JSON format
+  Provides access to command history
+end note
+
+note right of AutoSetup
+  Separate component
+  Requires sudo privileges
+  Handles step-ca installation
+end note
+
+@enduml
+
+step-ca-project/
+│
+├── step-ca-shared/
+│   ├── __init__.py
+│   └── cli_wrapper.py
+│
+├── step-ca-web/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py
+│   │   ├── config.py
+│   │   ├── auth.py
+│   │   ├── certificate_manager.py
+│   │   ├── server_config.py
+│   │   └── log_handler.py
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── main.css
+│   │   └── js/
+│   │       └── main.js
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── dashboard.html
+│   │   ├── certificates.html
+│   │   ├── server_config.html
+│   │   ├── logs.html
+│   │   └── command_history.html
+│   ├── logs/
+│   │   └── command_history.json
+│   ├── tests/
+│   │   └── ...
+│   ├── config.yaml
+│   ├── requirements.txt
+│   └── run.py
+│
+├── step-ca-setup/
+│   ├── auto_setup.py
+│   ├── requirements.txt
+│   └── run_setup.py
+│
+└── README.md
