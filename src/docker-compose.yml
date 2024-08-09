@@ -20,6 +20,10 @@ services:
     ports:
       - "443:443"
       - "443:443/udp"
+      - "3740:3740" # additional port for inbounds
+      - "3741:3741" # additional port for inbounds
+      - "3742:3742" # additional port for inbounds
+      - "3743:3743" # additional port for inbounds
     expose:
       - "2053"
       - "2096"
