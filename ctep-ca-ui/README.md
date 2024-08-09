@@ -62,47 +62,40 @@ actor "User" as user
 cloud "Internet" as internet
 
 rectangle "Host System" {
-  [Firewall] as firewall
-  [Reverse Proxy] as reverseproxy
-  [Authentication Proxy] as authproxy
+  [Bunkerweb] as bunkerweb
+  [Caddy] as caddy
+  [Authelia] as authelia
   
   DOCKER_NETWORK "Docker Network" {
     package "Web Frontend Container" as webfront {
-      [Flask Web Server] as flask
+      [Flask Web Server]
     }
     
     package "MainApp Container" as mainapp {
-      [Main Application] as mainapplogic
-      [API Server] as apiserver
-      [CLI Wrapper] as cliwrapper
+      [Main Application]
+      [API Server]
+      [CLI Wrapper]
     }
   }
   
   [step-ca CLI] as stepcacli
-  database "Certificate DB" as certdb
-  [Secrets Manager] as secretsmgr
 }
 
 user -down-> internet
-internet -down-> firewall
-firewall -down-> reverseproxy
-reverseproxy -down-> authproxy
-authproxy -down-> webfront
+internet -down-> bunkerweb
+bunkerweb -down-> caddy
+caddy -down-> authelia
+authelia -down-> webfront
 
-webfront -right-> mainapp : mTLS API calls
+webfront -down-> mainapp : mTLS & authenticated API calls
 
 mainapp -down-> stepcacli : Limited sudo access
-stepcacli -right-> certdb : Manage Certificates
-mainapp --> secretsmgr : Retrieve secrets
 
-note right of firewall : IP whitelisting
-note right of reverseproxy : TLS termination
-note right of authproxy : Third-party authentication
-note bottom of webfront : Runs as unprivileged user
-note bottom of mainapp : Runs with limited permissions
-note left of stepcacli : Installed globally on host
-note right of secretsmgr : Secure secrets management
-
+note right of caddy : HTTPS & Reverse Proxy
+note right of authelia : Authentication
+note right of webfront : Runs without permissions
+note right of mainapp : Runs with limited permissions & AppArmor/SELinux profile
+note right of stepcacli : Installed globally on host
 @enduml
 ```
 
