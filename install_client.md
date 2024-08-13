@@ -19,6 +19,8 @@
 - Появится окно, нажмите **Открыть**
 - В дальнейшем можно будет открыть через список всех приложений
 
+---
+
 2. Скопируйте личную ссылку
 3. В Hiddify Нажмите **добавить подключение** > из **буфера обмена**
 4. В правом верхнем углу нажмите на значок настроек
@@ -51,9 +53,9 @@
 ## Android
 На всякий случай скачайте несколько программ, в случае проблем между ними можно переключаться.
 
-[Hiddify](https://play.google.com/store/apps/details?id=app.hiddify.com)
-[HiddifyNG](https://play.google.com/store/apps/details?id=ang.hiddify.com)
-[v2rayNG](https://play.google.com/store/apps/details?id=com.v2ray.ang)
+- [Hiddify](https://play.google.com/store/apps/details?id=app.hiddify.com)
+- [HiddifyNG](https://play.google.com/store/apps/details?id=ang.hiddify.com)
+- [v2rayNG](https://play.google.com/store/apps/details?id=com.v2ray.ang)
 
 #### Настройка Hiddify (рекомендованый способ)
 1. Скопируйте личную ссылку
@@ -61,7 +63,7 @@
 3. Нажмите на большую кнопку **Подключиться**
 4. Успех!
 
-#### настройка HiddifyNG (запасной)
+#### Настройка HiddifyNG (запасной)
 Настраивается просто, аналогично Hiddify
 
 #### Настройка v2RayNG (запасной)
@@ -79,10 +81,10 @@
 
 Apple [начала удалять](https://habr.com/ru/news/826694/) VPN программы из своего магазина по ребованию роскомнадзора. На всякий случай скачайте несколько подходящих приложений, в случае проблем между ними можно переключаться. Завтра они могут стать недоступны!
 
-[FoXray](https://apps.apple.com/ru/app/foxray/id6448898396)
-[Streisand](https://apps.apple.com/ru/app/streisand/id6450534064)
-[v2RayTun](https://apps.apple.com/ru/app/v2raytun/id6476628951)
-[V2Box](https://apps.apple.com/ru/app/v2box-v2ray-client/id6446814690)
+- [FoXray](https://apps.apple.com/ru/app/foxray/id6448898396)
+- [Streisand](https://apps.apple.com/ru/app/streisand/id6450534064)
+- [v2RayTun](https://apps.apple.com/ru/app/v2raytun/id6476628951)
+- [V2Box](https://apps.apple.com/ru/app/v2box-v2ray-client/id6446814690)
 
 1. Пример для [FoxRay](https://apps.apple.com/us/app/foxray/id6448898396)
 2. Скопируйте личную ссылку
