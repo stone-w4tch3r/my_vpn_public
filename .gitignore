@@ -218,4 +218,5 @@ $RECYCLE.BIN/
 .idea/vcs.xml
 .idea/misc.xml
 .idea/my_vpn_public.iml
+.idea/markdown.xml
 */.env
