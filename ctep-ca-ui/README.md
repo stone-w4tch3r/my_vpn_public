@@ -115,91 +115,416 @@ note right of stepcacli : Installed globally on host
 @enduml
 ```
 
-```puml
-@startsalt
-{
-  [Logo] | [Dashboard] | [Logs] | [User Menu] 
-  {
-    {T
-      + Certificate Management
-      {#
-        | List of Certificates |
-        {T
-          + Cert Name | Status | Actions
-          + Cert 1 | Active | {[ Renew ] | [ Revoke ]}
-          + Cert 2 | Expired | [ Delete ]
-        }
-      }
-      [ Generate New Certificate ]
-    }
-  }
-}
-
-{
-  {T
-    + Generate New Certificate
-    {
-      Key Name: | "                 "
-      Key Type: | ^RSA^
-      Duration: | "    " ^days^
-    }
-    Command that will be executed:
-    {
-      $ step-ca command ...
-    }
-    Logs:
-    {
-      Action-specific logs appear here
-    }
-    [ Generate ] [ Cancel ]
-  }
-}
-@endsalt
+### UI Mockup
+Main page:
+```
++--------------------------------------------+
+|  Logo    [Dashboard]    [Logs]    [Menu]   |
++--------------------------------------------+
+|                                            |
+|  Certificate Management                    |
+|  +--------------------------------------+  |
+|  | List of Certificates                 |  |
+|  | +--------------------------------+   |  |
+|  | | Cert Name | Status  | Actions  |   |  |
+|  | |-----------|---------|----------|   |  |
+|  | | Cert 1    | Active  | [Renew]  |   |  |
+|  | |           |         | [Revoke] |   |  |
+|  | |-----------|---------|----------|   |  |
+|  | | Cert 2    | Expired | [Delete] |   |  |
+|  | +--------------------------------+   |  |
+|  |                                      |  |
+|  |     [Generate New Certificate]       |  |
+|  +--------------------------------------+  |
++--------------------------------------------+
 ```
 
-```puml
-@startsalt
-{
-  {T
-    + Logo | Dashboard | Logs | User Menu
-  }
-  {
-    {T
-      + Certificate Management
-      {#
-        | List of Certificates |
-        {T
-          + Cert Name | Status | Actions
-          + Cert 1 | Active | {[ Renew ] | [ Revoke ]}
-          + Cert 2 | Expired | [ Delete ]
-        }
-      }
-      [ Generate New Certificate ]
-    }
-  }
-}
-
-{
-  {T
-    + Generate New Certificate
-    {
-      Key Name: | "                 "
-      Key Type: | ^RSA^
-      Duration: | "    " ^days^
-    }
-    Command that will be executed:
-    {
-      $ step-ca command ...
-    }
-    Logs:
-    {
-      Action-specific logs appear here
-    }
-    [ Generate ] [ Cancel ]
-  }
-}
-@endsalt
+Generate cert modal dialog:
+```
++------------------------------------------+
+|  Generate New certificate                |
+|  +------------------------------------+  |
+|  | Key Name: __                       |  |
+|  | Key Type: >RSA                     |  | #dropdown: RSA etc
+|  | Duration: ___ >days                |  | #dropdown: minutes, hours etc
+|  |                                    |  |
+|  | Command that will be executed:     |  |
+|  | [Click here to reload preview]     |  |
+|  | [Execute!]                         |  | # if preview is loaded and all fields are filled
+|  | <$ step-ca command ...          >  |  |
+|  |                                    |  |
+|  | Logs:            <In progress...>  |  |
+|  | <Action-specific logs appear here> |  |
+|  +------------------------------------+  |
++------------------------------------------+
 ```
 
+Logs page:
+```
++-----------------------------------------------------------------+
+|  Logo    [Dashboard]    [Logs]    [Menu]                        |
++-----------------------------------------------------------------+
+|                                                                 |
+|  Logs and Command History                                       |
+|  +-----------------------------------------------------------+  |
+|  | Filters:                                                  |  |
+|  | Severity: [All v]  Type: [All v]                          |  |
+|  | Date Range: [From] [To]  [Apply]                          |  |
+|  |                                                           |  |
+|  | Search: [____________] [Search]                           |  |
+|  |                                                           |  |
+|  | +-------------------------------------------------------+ |  |
+|  | | EntryID | Timestamp | Severity | TraceID | Message    | |  |
+|  | |---------|-----------|----------|---------|------------| |  |
+|  | | 00002   | 2023-08-1 | INFO     | abc123  | Generating | |  |
+|  | |         | 7 10:15   |          |         | new cert   | |  |
+|  | |         | $ step ca certificate ...                   | |  |
+|  | |         | [Click to see command output...]            | |  |
+|  | |---------|---------------------------------------------| |  |
+|  | | 00003   | 2023-08-1 | WARN     | def456  | Cert not   | |  |
+|  | |         | 7 10:14   |          |         | exists     | |  |
+|  | |---------|--------------------------------|------------| |  |
+|  | | 00004   | 2023-08-1 | DEBUG    | def456  | Request    | |  |
+|  | |         | 7 10:13   |          |         | revoke     | |  |
+|  | |---------|--------------------------------|------------| |  |
+|  | | 00005   | 2023-08-1 | ERROR    | ghi789  | Permission | |  |
+|  | |         | 7 10:12   |          |         | denied     | |  |
+|  | +-------------------------------------------------------+ |  |
+|  |                                                           |  |
+|  | [Load More]                                               |  |
+|  +-----------------------------------------------------------+  |
++-----------------------------------------------------------------+
+```
+
+### Logging
+
+Log entry structure:
+```python
+class LogSeverity(Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARN = "WARN"
+    ERROR = "ERROR"
+
+
+class ActionType(Enum):
+    GENERATE_CERT = "GENERATE_CERT"
+    REVOKE_CERT = "REVOKE_CERT"
+    # etc
+
+
+@dataclass
+class CommandInfo:
+    command: str
+    output: str
+    exit_code: int
+    action: ActionType
+
+
+@dataclass
+class LogEntry:
+    entry_id: int
+    timestamp: datetime
+    severity: LogSeverity
+    message: str
+    trace_id: UUID
+    command_info: CommandInfo | None # for entries with command execution
+```
+
+- Logs are stored in file (in future can be stored in database)
+- Escaping for JSON serialization
+- Log rotation and cleanup support
+- Custom logger class for logging
+- Special API endpoint for fetching logs, with filtering and pagination
+- Scoped logging (trace_id) implemented for tracking actions across multiple log entries
+
+### Core API
+
+```yaml
+openapi: 3.0.0
+info:
+  title: Step-CA Management API
+  version: 0.0.1
+  description: API for managing step-ca Certificate Authority
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /certificates:
+    get:
+      summary: List all certificates
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:    
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Certificate'
+
+  /certificates/generate:
+    post:
+      summary: Generate certificate
+      parameters:
+        - name: preview
+          in: query
+          schema:
+            type: boolean
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificateGenerateRequest'
+      responses:
+        '200':
+          description: Command preview or generation result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CertificateGenerateResult'
+                  - $ref: '#/components/schemas/CommandPreview'
+
+  /certificates/renew:
+    post:
+      summary: Preview renew certificate command
+      parameters:
+        - name: certId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: duration
+          in: query
+          required: true
+          schema:
+            type: integer
+            description: "Duration in seconds"
+        - name: preview
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Command preview
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CertificateRenewResult'
+                  - $ref: '#/components/schemas/CommandPreview'
+
+  /certificates/revoke:
+    post:
+      summary: Preview revoke certificate command
+      parameters:
+        - name: certId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: preview
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Command preview
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CertificateRevokeResult'
+                  - $ref: '#/components/schemas/CommandPreview'
+
+  /logs/single:
+    get:
+      summary: Get log entry by ID
+      parameters:
+        - name: logId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogEntry'
+
+
+  /logs: #TODO simplify?
+    get:
+      summary: Retrieve logs
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [DEBUG, INFO, WARN, ERROR]
+        - name: fromDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: toDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: search_query
+          in: query
+          description: Search query for message/trace_id/command
+          schema:
+            type: string
+        - name: traceId
+          in: query
+          schema:
+            type: string
+            description: "UUID format"
+        - name: commands_only
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LogEntry'
+
+components:
+  schemas:
+    Certificate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+          enum: [Active, Expired, Revoked]
+        expirationDate:
+          type: string
+          format: date-time
+
+    CertificateGenerateRequest:
+      type: object
+      properties:
+        keyName:
+          type: string
+        keyType:
+          type: string
+          enum: [RSA, ECDSA]
+        duration:
+          type: string
+
+    CommandPreview:
+      type: object
+      properties:
+        command:
+          type: string
+
+    CertificateGenerateResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        logEntryId:
+          type: string
+        certificateId:
+          type: string
+        certificateName:
+          type: string
+        expirationDate:
+          type: string
+          format: date-time
+
+    CertificateRenewResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        logEntryId:
+          type: string
+        certificateId:
+          type: string
+        newExpirationDate:
+          type: string
+          format: date-time
+
+    CertificateRevokeResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        logEntryId:
+          type: string
+        certificateId:
+          type: string
+        revocationDate:
+          type: string
+          format: date-time
+
+    LogEntry:
+      type: object
+      properties:
+        entry_id:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        severity:
+          type: string
+          enum: [DEBUG, INFO, WARN, ERROR]
+        message:
+          type: string
+        traceId:
+          type: string
+          description: "UUID format"
+        commandInfo:
+          $ref: '#/components/schemas/CommandInfo'
+          nullable: true
+          description: Contains command execution info, if entry is related to command
+
+    CommandInfo:
+      type: object
+      properties:
+        command:
+          type: string
+        output:
+          type: string
+        exitCode:
+          type: integer
+        action: #TODO is it needed?
+          type: string
+          enum: [GENERATE_CERT, RENEW_CERT, REVOKE_CERT]
+```
 ---
+
 # TODO
